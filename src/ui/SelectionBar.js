@@ -91,7 +91,7 @@ export class SelectionBar {
       .filter(Boolean)
       .sort((a, b) => {
         if (a.day !== b.day) return a.day.localeCompare(b.day, undefined, { numeric: true });
-        return a.startMinutes - b.startMinutes;
+        return (a.startMinutes ?? Infinity) - (b.startMinutes ?? Infinity);
       });
 
     if (alertEl) {
@@ -106,7 +106,7 @@ export class SelectionBar {
     chipsEl.innerHTML = items.map(s => {
       const isConf = conflictIds.has(s.id);
       const isNew = newIds.has(s.id);
-      const timeText = ConflictDetector.isFlexibleShow(s) ? '随時' : s.startTime;
+      const timeText = s.isUnscheduled ? '時間枠なし' : (ConflictDetector.isFlexibleShow(s) ? '随時' : s.startTime);
       const dayPrefix = s.day !== activeDay ? `[${s.day}] ` : '';
       return `
         <div class="selected-chip ${isConf ? 'is-conflict' : ''} ${isNew ? 'is-entering' : ''}" data-show-id="${Parser.escapeHtml(s.id)}">

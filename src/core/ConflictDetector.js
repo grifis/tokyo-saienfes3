@@ -97,7 +97,7 @@ export class ConflictDetector {
       const seenFlexTitles = new Set();
 
       const candidates = (allShowsForDay || []).filter(c => {
-        if (!c || selectedIdsSet.has(c.id) || c.isSoldOut) return false;
+        if (!c || c.isUnscheduled || selectedIdsSet.has(c.id) || c.isSoldOut) return false;
         if (this.isFlexibleShow(c)) {
           const flexStart = c.startMinutes || 0;
           const flexEndStr = c.acceptEndTime || c.totalEndTime || '';

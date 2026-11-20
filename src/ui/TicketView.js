@@ -502,7 +502,7 @@ export class TicketView {
         const aFlex = ConflictDetector.isFlexibleShow(a) ? 1 : 0;
         const bFlex = ConflictDetector.isFlexibleShow(b) ? 1 : 0;
         if (aFlex !== bFlex) return aFlex - bFlex;
-        return a.startMinutes - b.startMinutes || a.endMinutes - b.endMinutes;
+        return (a.startMinutes ?? Infinity) - (b.startMinutes ?? Infinity) || a.endMinutes - b.endMinutes;
       });
   }
 
@@ -596,7 +596,7 @@ export class TicketView {
       const serial = String(idx + 1);
       const isFlex = ConflictDetector.isFlexibleShow(s);
       const flexEndLabel = s.totalEndTime || s.acceptEndTime || '';
-      const timeText = isFlex
+      const timeText = s.isUnscheduled ? `時間枠なし・${s.reserveType}` : isFlex
         ? (flexEndLabel ? `随時受付 (${s.startTime}-${flexEndLabel})` : `随時受付 (${s.displayDuration || '時間自由'})`)
         : `${s.startTime} - ${s.endTime || Parser.minutesToTime(s.endMinutes)}`;
       const roomText = s.room && s.room !== '-' ? s.room : '会場未設定';
@@ -607,7 +607,7 @@ export class TicketView {
           <span class="pass-item-index foil" data-foil-text="${serial}">${serial}</span>
           <div class="pass-item-meta">
             <span class="pass-item-time"><span class="pass-field">時間</span><span class="pass-item-time-tag">${Parser.escapeHtml(timeText)}</span></span>
-            <span class="pass-item-room"><span class="pass-field">会場</span>${Parser.escapeHtml(roomText)}</span>
+            ${s.isUnscheduled ? '' : `<span class="pass-item-room"><span class="pass-field">会場</span>${Parser.escapeHtml(roomText)}</span>`}
           </div>
           <div class="pass-item-title">${Parser.escapeHtml(s.title)}</div>
           <div class="pass-item-group">${Parser.escapeHtml(groupText)}</div>
@@ -632,10 +632,10 @@ export class TicketView {
     const lines = dayShows.map(s => {
       const isFlex = ConflictDetector.isFlexibleShow(s);
       const flexEndLabel = s.totalEndTime || s.acceptEndTime || '';
-      const timeText = isFlex
+      const timeText = s.isUnscheduled ? `時間枠なし・${s.reserveType}` : isFlex
         ? (flexEndLabel ? `随時受付(${s.startTime}-${flexEndLabel})` : '随時受付')
         : `${s.startTime}-${s.endTime || Parser.minutesToTime(s.endMinutes)}`;
-      const roomPart = s.room && s.room !== '-' ? ` / ${s.room}` : '';
+      const roomPart = !s.isUnscheduled && s.room && s.room !== '-' ? ` / ${s.room}` : '';
       return `・${timeText}｜${s.title}（${s.groupName || ''}${roomPart}）`;
     });
 

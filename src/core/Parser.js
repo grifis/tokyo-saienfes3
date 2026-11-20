@@ -121,6 +121,7 @@ export class Parser {
    * 単一の公演オブジェクトの正規化
    */
   static normalizeShow(rawShow, index) {
+    const isUnscheduled = rawShow['時間枠なし'] === true;
     const rawStart = String(rawShow['開始時間(hh:mm)'] || '10:00').trim();
     const normStart = rawStart
       .replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
@@ -132,15 +133,15 @@ export class Parser {
     const totalEndTime = String(rawShow['完全終了時間'] || '').trim();
 
     const reserveType = rawShow['予約形式'] || '';
-    const isFlexibleTime =
+    const isFlexibleTime = isUnscheduled ||
       reserveType.includes('当日受付') ||
       reserveType.startsWith('当日') ||
       reserveType === '事前予約(時間自由)' ||
       normStart === '随時' ||
       Boolean(rangeMatch);
 
-    const startTimeStr = normStart === '随時' ? '10:00' : (rangeMatch ? rangeMatch[1] : normStart);
-    const startMinutes = this.timeToMinutes(startTimeStr);
+    const startTimeStr = isUnscheduled ? '' : (normStart === '随時' ? '10:00' : (rangeMatch ? rangeMatch[1] : normStart));
+    const startMinutes = isUnscheduled ? null : this.timeToMinutes(startTimeStr);
 
     const { durationMin, displayDuration } = this.parseDuration(
       rawShow['所要時間(分)'],
@@ -150,7 +151,10 @@ export class Parser {
     const flexEndStr = totalEndTime || acceptEndTime;
     let endMinutes;
     let endTimeStr;
-    if (isFlexibleTime && flexEndStr && flexEndStr.includes(':')) {
+    if (isUnscheduled) {
+      endMinutes = null;
+      endTimeStr = '';
+    } else if (isFlexibleTime && flexEndStr && flexEndStr.includes(':')) {
       endTimeStr = flexEndStr;
       endMinutes = this.timeToMinutes(flexEndStr);
     } else {
@@ -187,6 +191,7 @@ export class Parser {
       fee: rawShow['参加料金'] || rawShow['参加費'] || '',
       reserveType,
       isFlexibleTime,
+      isUnscheduled,
       difficulty,
       tags,
       previewText: rawShow['プレビュー用テキスト'] || '',
@@ -241,6 +246,7 @@ export class Parser {
       allowZeroMinTransfer: String(rawConfig['0分移動可否'] || '').trim() === '0分移動OK',
       // 会場マップ（venue_map.json）の URL。空欄なら移動ルート機能は出さない
       venueMapUrl: String(rawConfig['会場マップURL'] || '').trim(),
+      showRoomTransferNotes: rawConfig['会場移動の目安'] === 'ON',
       allowSoldOutSelect: String(rawConfig['完売公演の選択可否'] || '').trim() === '選択OK',
       isMaintenance: String(rawConfig['非公開モード'] || '').trim() === '非公開モードON',
       maintenanceMessage: rawConfig['非公開モード:準備中メッセージ'] || '只今準備中です。公開までしばらくお待ちください。',

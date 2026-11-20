@@ -186,6 +186,9 @@ function syncSelectionState() {
   state.conflictIds = conflictIds;
 
   timetableView.updateSelectionVisuals(state.selectedIds, state.conflictIds);
+  for (const button of document.querySelectorAll('#untimed-list button')) {
+    button.setAttribute('aria-pressed', String(state.selectedIds.includes(button.dataset.showId)));
+  }
   selectionBar.render(state.selectedIds, state.showsMap, state.conflictIds, getActiveDayStr());
   ticketView.setContext(state.config, state.allShows, state.selectedIds);
   scheduleDialog.updateState({
@@ -245,13 +248,32 @@ function renderTimetable() {
     return true;
   });
 
-  timetableView.render(dayShows, {
+  renderUnscheduledShows(dayShows.filter(show => show.isUnscheduled));
+  timetableView.render(dayShows.filter(show => !show.isUnscheduled), {
     unlockedShows: state.unlockedShows,
     unlockedUrls: state.unlockedUrls,
     selectedIds: state.selectedIds,
     conflictIds: state.conflictIds,
     isMatchFn: (show) => (filterModal ? filterModal.doesShowMatchFilter(show) : true)
   });
+}
+
+function renderUnscheduledShows(shows) {
+  const section = document.getElementById('untimed-programs');
+  const list = document.getElementById('untimed-list');
+  const count = document.getElementById('untimed-count');
+  const visible = shows.filter(show => filterModal.doesShowMatchFilter(show));
+  section.hidden = shows.length === 0;
+  count.textContent = `（${visible.length}件）`;
+  list.innerHTML = visible.map(show => {
+    const meta = [show.groupName, show.reserveType, show.displayDuration, show.fee].filter(Boolean).join(' / ');
+    return `<li><button type="button" data-show-id="${Parser.escapeHtml(show.id)}"
+      aria-pressed="${state.selectedIds.includes(show.id)}">
+      <span class="untimed-text"><strong>${Parser.escapeHtml(show.title)}</strong>
+      <span>${Parser.escapeHtml(meta)}</span></span>
+      <span class="untimed-action" aria-hidden="true"></span>
+    </button></li>`;
+  }).join('') || '<li>絞り込み条件に該当する企画はありません。</li>';
 }
 
 function handleToggleShow(showId) {
@@ -431,6 +453,11 @@ async function fetchLatestRawData() {
 }
 
 function bindGlobalUiEvents() {
+  document.getElementById('untimed-list').addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-show-id]');
+    if (button) handleToggleShow(button.dataset.showId);
+  });
+
   // 日程ステッパー（方向付き View Transition）
   document.getElementById('day-prev-btn')?.addEventListener('click', () => {
     if (state.currentDayNum > 1) {

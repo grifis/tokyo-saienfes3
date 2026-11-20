@@ -238,7 +238,7 @@ export class MyScheduleDialog {
     this.mode = 'list';
     this.gapFinderActive = false;
     // フェスの当日に、その日の予定を開いたときだけ、ルートを最初から出す（当日以外は押したときだけ）
-    this.routeActive = Boolean(this.venueRouter) && eventDayToday(this.config) === this.activeDay;
+    this.routeActive = Boolean(this.venueRouter || this.config.showRoomTransferNotes) && eventDayToday(this.config) === this.activeDay;
     this._cleanupTimers();
     this.render();
     if (this.dialogEl && !this.dialogEl.open) {
@@ -258,7 +258,9 @@ export class MyScheduleDialog {
       ];
       const routeBtn = document.getElementById('route-toggle-btn');
       if (routeBtn && !routeBtn.classList.contains('hidden')) {
-        steps.push({ target: routeBtn, title: 'ルート表示', text: '公演と公演の間の移動ルートを出します。当日、次の部屋や建物へ向かうときに使ってください。' });
+        steps.push(this.venueRouter
+          ? { target: routeBtn, title: 'ルート表示', text: '公演と公演の間の移動ルートを表示します。' }
+          : { target: routeBtn, title: '移動の目安', text: '公演間の移動先の階・部屋と、集合案内を表示します。' });
       }
       const shown = showCoachMarks(this.dialogEl, steps, { onDone: markCoachSeen });
       if (!shown) markCoachSeen();
@@ -332,11 +334,12 @@ export class MyScheduleDialog {
         const aFlex = ConflictDetector.isFlexibleShow(a) ? 1 : 0;
         const bFlex = ConflictDetector.isFlexibleShow(b) ? 1 : 0;
         if (aFlex !== bFlex) return aFlex - bFlex;
-        return a.startMinutes - b.startMinutes || a.endMinutes - b.endMinutes;
+        return (a.startMinutes ?? Infinity) - (b.startMinutes ?? Infinity) || a.endMinutes - b.endMinutes;
       });
   }
 
   _resolveReserveActionHtml(show, showKeyMap) {
+    if (show.isUnscheduled) return '';
     const isFlexible = ConflictDetector.isFlexibleShow(show);
     if (isFlexible) {
       return '<span style="font-size:10px; font-weight:800; color:var(--fes-main);">当日現地受付</span>';
@@ -398,14 +401,18 @@ export class MyScheduleDialog {
     // ルート表示：会場マップがあるときだけ。2 公演以上で押せる
     const routeToggleBtn = document.getElementById('route-toggle-btn');
     if (routeToggleBtn) {
-      routeToggleBtn.classList.toggle('hidden', !this.venueRouter);
-      const canRoute = Boolean(this.venueRouter) && selectedDayShows.length >= 2;
+      const hasTransferGuide = Boolean(this.venueRouter || this.config.showRoomTransferNotes);
+      routeToggleBtn.classList.toggle('hidden', !hasTransferGuide);
+      const canRoute = hasTransferGuide && selectedDayShows.filter(show => !show.isUnscheduled).length >= 2;
       routeToggleBtn.disabled = !canRoute;
       routeToggleBtn.style.opacity = canRoute ? '' : '0.45';
       routeToggleBtn.setAttribute('aria-pressed', String(this.routeActive));
       routeToggleBtn.classList.toggle('is-on', this.routeActive);
       const label = document.getElementById('route-toggle-label');
-      if (label) label.textContent = this.routeActive ? 'ルートを隠す' : 'ルート表示';
+      if (label) {
+        const guideLabel = this.venueRouter ? 'ルート' : '移動の目安';
+        label.textContent = this.routeActive ? `${guideLabel}を隠す` : `${guideLabel}を表示`;
+      }
     }
 
     const timedSelected = selectedDayShows.filter(s => !ConflictDetector.isFlexibleShow(s));
@@ -424,7 +431,7 @@ export class MyScheduleDialog {
       panelTimeline.innerHTML = `
         <div class="tl-card" style="text-align:center; padding:22px 14px;">
           <p class="tl-title" style="color:var(--fes-muted); margin-bottom:4px;">選択されている公演がありません</p>
-          <p style="margin:0; font-size:11px; font-weight:700; color:var(--fes-muted);">タイムテーブルの時間枠をタップするとここに追加されます。</p>
+          <p style="margin:0; font-size:11px; font-weight:700; color:var(--fes-muted);">公演や企画を選ぶとここに追加されます。</p>
         </div>
       `;
       return;
@@ -465,11 +472,13 @@ export class MyScheduleDialog {
       const isConf = this.conflictIds.has(show.id);
       const isFlex = ConflictDetector.isFlexibleShow(show);
       const flexEndLabel = show.totalEndTime || show.acceptEndTime || '';
-      const timeLabel = isFlex
+      const timeLabel = show.isUnscheduled ? '時間枠なし' : isFlex
         ? (flexEndLabel ? `随時受付 (${show.startTime}-${flexEndLabel})` : `随時受付 (${show.displayDuration || '時間自由'})`)
         : `${show.startTime} - ${show.endTime || Parser.minutesToTime(show.endMinutes)}`;
       const roomLabel = show.room && show.room !== '-' ? show.room : '会場未設定';
-      const durationLabel = show.displayDuration || `${show.durationMin || 30}分`;
+      const durationLabel = show.displayDuration || (show.isUnscheduled ? '' : `${show.durationMin || 30}分`);
+      const meta = [show.groupName || '出展団体', show.isUnscheduled && show.reserveType, durationLabel && `所要 ${durationLabel}`]
+        .filter(Boolean).join(' / ');
       const reserveHtml = this._resolveReserveActionHtml(show, showKeyMap);
 
       // 前の公演と部屋が違えば、カードの前に「移動」の帯を入れる（地図があり、ルート表示を押したときだけ）
@@ -480,13 +489,13 @@ export class MyScheduleDialog {
           <div class="tl-card-top">
             <span class="tl-time-pill">${Parser.escapeHtml(timeLabel)}</span>
             <div style="display:inline-flex; align-items:center; gap:5px;">
-              <span class="tl-room-badge">${PIN_SVG}<span>${Parser.escapeHtml(roomLabel)}</span></span>
+              ${show.isUnscheduled ? '' : `<span class="tl-room-badge">${PIN_SVG}<span>${Parser.escapeHtml(roomLabel)}</span></span>`}
               <button type="button" class="tl-remove-btn" data-remove-show-id="${Parser.escapeHtml(show.id)}" aria-label="${Parser.escapeHtml(show.title)} を予定から外す">×</button>
             </div>
           </div>
           <h3 class="tl-title">${Parser.escapeHtml(show.title)}</h3>
           <div class="tl-meta-row">
-            <span>${Parser.escapeHtml(show.groupName || '出展団体')}（所要 ${Parser.escapeHtml(durationLabel)}）</span>
+            <span>${Parser.escapeHtml(meta)}</span>
             ${reserveHtml}
           </div>
         </div>
@@ -528,7 +537,7 @@ export class MyScheduleDialog {
   /** その日の予定の順に、部屋が変わる所を移動として並べる（全行程の再生用） */
   _routeLegs() {
     if (!this.venueRouter) return [];
-    const shows = this._getSelectedDayShows();
+    const shows = this._getSelectedDayShows().filter(show => !show.isUnscheduled);
     const legs = [];
     for (let i = 1; i < shows.length; i++) {
       const a = shows[i - 1];
@@ -546,8 +555,18 @@ export class MyScheduleDialog {
 
   /** 移動の帯（判定は出さない。出すのは「どこからどこへ」「ルートを見る」と、建物の外を通るときの目安の徒歩の時間） */
   _renderMoveStrip(prev, next) {
+    if (!prev || !next || prev.isUnscheduled || next.isUnscheduled) return '';
     const router = this.venueRouter;
-    if (!router || !prev || !next) return '';
+    if (!router) {
+      if (!this.config.showRoomTransferNotes || prev.room === next.room ||
+          !/^\d+F /.test(prev.room) || !/^\d+F /.test(next.room)) return '';
+      const meeting = next.room.startsWith('11F ホール')
+        ? '<small>ホール公演は開演時刻に1F集合</small>' : '';
+      return `<div class="move-strip" role="group" aria-label="移動の目安">
+        <span class="move-strip-icon">${ROUTE_SVG}</span>
+        <span class="move-strip-text"><b>${Parser.escapeHtml(prev.room)}</b> → <b>${Parser.escapeHtml(next.room)}</b> ${meeting}</span>
+      </div>`;
+    }
     const route = router.route(prev.room, next.room);
     if (!route) return '';
     // 周辺地図（屋外）の上の部屋（別館など）には階の名前を付けない
