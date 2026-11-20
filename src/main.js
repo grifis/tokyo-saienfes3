@@ -532,6 +532,7 @@ async function bootstrap() {
 
   selectionBar = new SelectionBar({
     onRemoveShow: handleRemoveShow,
+    onOpenSpec: (showId, invoker) => specPopup.openFrom(showId, invoker),
     onClearAll: handleClearAll,
     onOpenSchedule: () => {
       Analytics.track('open_schedule', { selectedIds: state.selectedIds });

@@ -166,6 +166,8 @@ export class Parser {
     const isSoldOut = this.parseSoldOut(rawShow['完売設定'] || rawShow['完売表示']);
     const tags = this.parseTags(rawShow['内容目安'] || rawShow['内容目安(雰囲気)']);
 
+    const rawDetailsUrl = String(rawShow['公演詳細URL'] || '').trim();
+    const detailsUrl = /^https:\/\//i.test(rawDetailsUrl) ? rawDetailsUrl : '';
     const visualSrc = rawShow['公演ビジュアルURL'] || rawShow['ビジュアルURL'];
     const visualUrl = this.convertDriveUrl(visualSrc);
     const visualThumbnail = this.convertDriveUrl(visualSrc, true);
@@ -185,6 +187,7 @@ export class Parser {
       displayDuration,
       capacity: rawShow['定員'] || '-',
       reserveUrl: rawShow['予約URL'] || '',
+      detailsUrl,
       visualUrl,
       visualThumbnail,
       isSoldOut,

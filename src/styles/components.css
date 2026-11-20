@@ -1811,3 +1811,41 @@ details.exclude-accordion[open] > summary::before {
   padding-top: 8px;
   margin: 0;
 }
+
+.chip-detail, .tl-detail-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.chip-detail {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.ring-details {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  text-align: center;
+  max-width: 100%;
+  font-size: 0.875rem;
+}
+
+.ring-details strong {
+  display: block;
+  text-shadow: var(--ring-text-shadow);
+}
+
+.ring-details a {
+  display: inline-grid;
+  place-items: center;
+  min-height: 44px;
+  margin-top: 0.25rem;
+  padding: 0.25rem 0.85rem;
+  color: #151827;
+  background: #fff;
+  border-radius: var(--radius-xs);
+  font-weight: 800;
+}

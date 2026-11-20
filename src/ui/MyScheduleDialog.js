@@ -480,6 +480,10 @@ export class MyScheduleDialog {
       const meta = [show.groupName || '出展団体', show.isUnscheduled && show.reserveType, durationLabel && `所要 ${durationLabel}`]
         .filter(Boolean).join(' / ');
       const reserveHtml = this._resolveReserveActionHtml(show, showKeyMap);
+      const title = Parser.escapeHtml(show.title);
+      const titleHtml = show.detailsUrl
+        ? `<a class="tl-detail-link" href="${Parser.escapeHtml(show.detailsUrl)}" target="_blank" rel="noopener noreferrer">${title}</a>`
+        : title;
 
       // 前の公演と部屋が違えば、カードの前に「移動」の帯を入れる（地図があり、ルート表示を押したときだけ）
       const moveStrip = idx > 0 && this.routeActive ? this._renderMoveStrip(selectedDayShows[idx - 1], show) : '';
@@ -493,7 +497,7 @@ export class MyScheduleDialog {
               <button type="button" class="tl-remove-btn" data-remove-show-id="${Parser.escapeHtml(show.id)}" aria-label="${Parser.escapeHtml(show.title)} を予定から外す">×</button>
             </div>
           </div>
-          <h3 class="tl-title">${Parser.escapeHtml(show.title)}</h3>
+          <h3 class="tl-title">${titleHtml}</h3>
           <div class="tl-meta-row">
             <span>${Parser.escapeHtml(meta)}</span>
             ${reserveHtml}

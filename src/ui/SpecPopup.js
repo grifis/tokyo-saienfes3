@@ -87,7 +87,7 @@ export class SpecPopup {
     this._el('spec-popover-close-btn')?.addEventListener('click', () => this.close());
     // ポスター・札・タグ・× 以外（ぼかしの所）を押したら閉じる
     popover.addEventListener('click', (e) => {
-      if (e.target.closest('.ring-poster, .ring-slot, .ring-tag, .ring-close')) return;
+      if (e.target.closest('.ring-poster, .ring-slot, .ring-tag, .ring-close, .ring-details')) return;
       this.close();
     });
     // パネルの外（素通しの表）を押した時：別の公演のポスター／「詳細」なら、そのまま開き直す（openFrom が切り替える）。
@@ -95,7 +95,7 @@ export class SpecPopup {
     document.addEventListener('pointerdown', (e) => {
       if (this.state === 'closed' || this.state === 'closing') return;
       if (e.target.closest('#spec-popover .ring-bg, #spec-popover .ring-layout, #spec-popover .ring-close')) return;
-      if (e.target.closest('.visual-tap-btn, .spec-pill-btn')) return;
+      if (e.target.closest('.visual-tap-btn, .spec-pill-btn, .chip-detail')) return;
       this.close();
     }, true);
     // Esc も × と同じく逆再生で閉じる（既定の「即座に閉じる」を止める）
@@ -196,6 +196,14 @@ export class SpecPopup {
     set('pop-room', verticalHtml(show.room || '未定'));
     const tags = show.tags && show.tags.length ? show.tags : [];
     set('pop-tags', tags.map((t) => `<span class="ring-tag">${esc(t)}</span>`).join(''));
+    const details = this._el('pop-details');
+    const link = this._el('pop-official-link');
+    if (details && link) {
+      details.hidden = !show.detailsUrl;
+      this._el('pop-title').textContent = show.title;
+      if (show.detailsUrl) link.href = show.detailsUrl;
+      else link.removeAttribute('href');
+    }
     return true;
   }
 
@@ -235,7 +243,9 @@ export class SpecPopup {
     };
     apply();
     const tagsH = this._el('pop-tags')?.offsetHeight || 0;
-    const maxPh = vh - 56 - 24 - 18 - tagsH - 16;
+    const detailsH = this._el('pop-details')?.offsetHeight || 0;
+    const detailsSpace = detailsH ? detailsH + 18 : 0;
+    const maxPh = vh - 56 - 24 - 18 - tagsH - detailsSpace - 16;
     if ((pw * 424) / 300 > maxPh) { pw = Math.max(120, (maxPh * 300) / 424); apply(); }
     layout.querySelectorAll('.ring-slot-value:not(.is-diff)').forEach((v) => {
       v.style.fontSize = '';

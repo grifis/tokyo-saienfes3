@@ -5,10 +5,11 @@ import { ConflictDetector } from '../core/ConflictDetector.js';
  * 下部選択バー（0件時は非表示、選択時にせり出して視線誘導）
  */
 export class SelectionBar {
-  constructor({ onRemoveShow, onClearAll, onOpenSchedule }) {
+  constructor({ onRemoveShow, onClearAll, onOpenSchedule, onOpenSpec }) {
     this.onRemoveShow = onRemoveShow;
     this.onClearAll = onClearAll;
     this.onOpenSchedule = onOpenSchedule;
+    this.onOpenSpec = onOpenSpec;
     this._prevIds = new Set();
     this._prevCount = 0;
     this._bindEvents();
@@ -43,6 +44,11 @@ export class SelectionBar {
     const chipsRow = document.getElementById('selected-chips-row');
     if (chipsRow) {
       chipsRow.addEventListener('click', (e) => {
+        const detailBtn = e.target.closest('.chip-detail');
+        if (detailBtn) {
+          this.onOpenSpec?.(detailBtn.dataset.showId, detailBtn);
+          return;
+        }
         const removeBtn = e.target.closest('.chip-remove');
         if (!removeBtn) return;
         const showId = removeBtn.getAttribute('data-show-id');
@@ -108,10 +114,14 @@ export class SelectionBar {
       const isNew = newIds.has(s.id);
       const timeText = s.isUnscheduled ? '時間枠なし' : (ConflictDetector.isFlexibleShow(s) ? '随時' : s.startTime);
       const dayPrefix = s.day !== activeDay ? `[${s.day}] ` : '';
+      const title = Parser.escapeHtml(s.title);
+      const titleHtml = s.detailsUrl && s.visualUrl
+        ? `<button type="button" class="chip-name chip-detail" data-show-id="${Parser.escapeHtml(s.id)}" aria-label="${title}の詳細">${title}</button>`
+        : `<span class="chip-name">${title}</span>`;
       return `
         <div class="selected-chip ${isConf ? 'is-conflict' : ''} ${isNew ? 'is-entering' : ''}" data-show-id="${Parser.escapeHtml(s.id)}">
           <span class="chip-time">${Parser.escapeHtml(dayPrefix + timeText)}</span>
-          <span class="chip-name">${Parser.escapeHtml(s.title)}</span>
+          ${titleHtml}
           <button type="button" class="chip-remove" data-show-id="${Parser.escapeHtml(s.id)}" aria-label="${Parser.escapeHtml(s.title)}を外す">×</button>
         </div>`;
     }).join('');
