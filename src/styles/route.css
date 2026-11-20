@@ -731,3 +731,189 @@
   .rv-legarrow i { opacity: 0.8; }
   .rv-rail-link span { transition: none; }
 }
+
+#venue-overview-btn {
+  align-self: center;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--fes-main);
+  border-radius: 0.65rem;
+  color: var(--fes-main);
+  background: var(--fes-surface);
+  font-weight: 800;
+}
+
+dialog.venue-overview {
+  width: min(36rem, calc(100% - 1.25rem));
+}
+
+.venue-overview .dialog-card {
+  overflow: hidden;
+}
+
+.venue-overview-body {
+  min-height: 0;
+  overflow: auto;
+  padding: 0.2rem 1rem 1rem;
+}
+
+.venue-map-note {
+  margin: 0 0 0.9rem;
+  color: var(--fes-muted);
+  font-size: 0.875rem;
+}
+
+.venue-floor-nav {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin: 0.9rem 0 0.55rem;
+}
+
+.venue-floor-nav button, .venue-route-nav button {
+  min-height: 44px;
+  border: 1px solid var(--fes-border-strong);
+  border-radius: 0.55rem;
+  background: var(--fes-surface);
+  font-weight: 800;
+}
+
+.venue-floor-nav button[aria-pressed="true"] {
+  border-color: var(--fes-main);
+  background: var(--fes-main);
+  color: var(--fes-main-ink);
+}
+
+.venue-floor-map {
+  border: 1px solid var(--fes-border);
+  border-radius: 0.8rem;
+  padding: 0.75rem;
+  background: color-mix(in srgb, var(--fes-main) 5%, var(--fes-surface));
+}
+
+.venue-floor-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.venue-floor-heading span, .venue-stop-floor {
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.45rem;
+  background: var(--fes-main);
+  color: var(--fes-main-ink);
+  font-weight: 900;
+}
+
+.venue-floor-heading h3, .venue-route h3 {
+  margin: 0;
+  font-weight: 900;
+}
+
+.venue-floor-map p {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+}
+
+.venue-rooms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr));
+  gap: 0.4rem;
+  margin: 0.65rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.venue-rooms li {
+  padding: 0.5rem;
+  border: 1px solid var(--fes-border);
+  border-radius: 0.45rem;
+  background: var(--fes-surface);
+  text-align: center;
+  font-weight: 750;
+}
+
+.venue-rooms li.is-on-route {
+  border-color: var(--fes-main);
+  box-shadow: inset 0 0 0 1px var(--fes-main);
+  background: color-mix(in srgb, var(--fes-main) 12%, var(--fes-surface));
+}
+
+.venue-rooms small {
+  display: block;
+  color: var(--fes-main);
+}
+
+.venue-route h3 {
+  margin: 0 0 0.55rem;
+  font-size: 1rem;
+}
+
+.venue-route-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.venue-route-nav button {
+  padding: 0.3rem 0.65rem;
+}
+
+.venue-route-nav button:disabled {
+  opacity: 0.45;
+}
+
+.venue-stops {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0 0 0 1rem;
+  padding: 0 0 0 0.7rem;
+  border-left: 2px solid var(--fes-main);
+  list-style: none;
+}
+
+.venue-stops li {
+  position: relative;
+}
+
+.venue-stops li::before {
+  content: "";
+  position: absolute;
+  top: calc(50% - 4px);
+  left: calc(-0.7rem - 5px);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--fes-main);
+}
+
+.venue-stops button {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  min-height: 48px;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--fes-border);
+  border-radius: 0.5rem;
+  background: var(--fes-surface);
+  text-align: left;
+}
+
+.venue-stops button[aria-pressed="true"] {
+  border-color: var(--fes-main);
+}
+
+.venue-stops small {
+  display: block;
+  color: var(--fes-muted);
+}
+
+.venue-map-source {
+  display: inline-block;
+  margin-top: 0.65rem;
+  color: var(--fes-main);
+  text-decoration: underline;
+  font-size: 0.875rem;
+}

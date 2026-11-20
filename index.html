@@ -67,7 +67,8 @@
 
     <!-- メイン：全体タイムテーブル（標準サイズ統一） -->
     <main class="main-stage">
-      <nav class="event-links" aria-label="イベント公式情報">
+      <nav class="event-links" aria-label="会場・イベント情報">
+        <button type="button" id="venue-overview-btn" hidden>会場マップ</button>
         <a href="https://sites.google.com/view/t-saien3/タイムテーブル" target="_blank" rel="noopener">公式時刻表・予約不要の企画</a>
         <a href="https://sites.google.com/view/t-saien3/公演詳細" target="_blank" rel="noopener">公演詳細</a>
         <a href="https://escape.id/t-saienfes-org/e-3-1212-13/" target="_blank" rel="noopener">チケット・予約案内</a>
@@ -148,6 +149,20 @@
       </div>
     </div>
   </div>
+
+  <dialog id="venue-overview-dialog" class="fes-dialog venue-overview" closedby="any" aria-labelledby="venue-overview-title">
+    <div class="dialog-card">
+      <div class="dialog-head">
+        <h2 id="venue-overview-title" class="dialog-title">会場マップ</h2>
+        <button type="button" id="venue-overview-close" class="close-square-btn" aria-label="閉じる">×</button>
+      </div>
+      <div class="venue-overview-body">
+        <p class="venue-map-note">階と部屋の模式図です。実際の配置や通路、移動手段は現地の案内をご確認ください。</p>
+        <div id="venue-overview-content"></div>
+        <a class="venue-map-source" href="https://sites.google.com/view/t-saien3/タイムテーブル" target="_blank" rel="noopener noreferrer">出典 · 公式タイムテーブル</a>
+      </div>
+    </div>
+  </dialog>
 
   <!-- 「自分の予定・ハシゴ表」 ＆ 「My ハシゴテーブル」 モーダル -->
   <dialog id="schedule-dialog" class="fes-dialog" closedby="any" aria-labelledby="schedule-dialog-title">

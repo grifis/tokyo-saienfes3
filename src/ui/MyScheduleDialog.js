@@ -36,9 +36,10 @@ export class MyScheduleDialog {
   /**
    * @param {{ ticketView: import('./TicketView.js').TicketView, onAddShow: (id: string) => void, onRemoveShow: (id: string) => void }} deps
    */
-  constructor({ ticketView, routeView, onAddShow, onRemoveShow }) {
+  constructor({ ticketView, routeView, venueOverview, onAddShow, onRemoveShow }) {
     this.ticketView = ticketView;
     this.routeView = routeView;
+    this.venueOverview = venueOverview;
     /** 会場マップ（未設定なら null。その場合、移動の帯もボタンも出さない） */
     this.venueRouter = null;
     this.onAddShow = onAddShow;
@@ -135,8 +136,8 @@ export class MyScheduleDialog {
         }
 
         const routeBtn = e.target.closest('.move-strip-btn');
-        if (routeBtn && this.venueRouter && this.routeView) {
-          this.routeView.open(this.venueRouter, [{
+        if (routeBtn) {
+          this._openRoute([{
             from: routeBtn.dataset.routeFrom,
             to: routeBtn.dataset.routeTo,
             nextShowLabel: routeBtn.dataset.nextLabel || ''
@@ -158,7 +159,7 @@ export class MyScheduleDialog {
     if (tourBtn) {
       tourBtn.addEventListener('click', () => {
         const legs = this._routeLegs();
-        if (legs.length && this.routeView) this.routeView.open(this.venueRouter, legs);
+        if (legs.length) this._openRoute(legs);
       });
     }
 
@@ -260,7 +261,7 @@ export class MyScheduleDialog {
       if (routeBtn && !routeBtn.classList.contains('hidden')) {
         steps.push(this.venueRouter
           ? { target: routeBtn, title: 'ルート表示', text: '公演と公演の間の移動ルートを表示します。' }
-          : { target: routeBtn, title: '移動の目安', text: '公演間の移動先の階・部屋と、集合案内を表示します。' });
+          : { target: routeBtn, title: 'ルート表示', text: '公演間の移動先と集合場所を、会場マップで確認できます。' });
       }
       const shown = showCoachMarks(this.dialogEl, steps, { onDone: markCoachSeen });
       if (!shown) markCoachSeen();
@@ -410,7 +411,7 @@ export class MyScheduleDialog {
       routeToggleBtn.classList.toggle('is-on', this.routeActive);
       const label = document.getElementById('route-toggle-label');
       if (label) {
-        const guideLabel = this.venueRouter ? 'ルート' : '移動の目安';
+        const guideLabel = 'ルート';
         label.textContent = this.routeActive ? `${guideLabel}を隠す` : `${guideLabel}を表示`;
       }
     }
@@ -540,17 +541,23 @@ export class MyScheduleDialog {
 
   /** その日の予定の順に、部屋が変わる所を移動として並べる（全行程の再生用） */
   _routeLegs() {
-    if (!this.venueRouter) return [];
     const shows = this._getSelectedDayShows().filter(show => !show.isUnscheduled);
     const legs = [];
     for (let i = 1; i < shows.length; i++) {
       const a = shows[i - 1];
       const b = shows[i];
-      if (this.venueRouter.route(a.room, b.room)) {
+      const canGuide = this.venueRouter
+        ? Boolean(this.venueRouter.route(a.room, b.room)) : this.venueOverview?.canGuide(a.room, b.room);
+      if (canGuide) {
         legs.push({ from: a.room, to: b.room, nextShowLabel: this._showLabel(b) });
       }
     }
     return legs;
+  }
+
+  _openRoute(legs) {
+    if (this.venueRouter) this.routeView.open(this.venueRouter, legs);
+    else this.venueOverview?.open(legs);
   }
 
   _showLabel(show) {
@@ -562,13 +569,15 @@ export class MyScheduleDialog {
     if (!prev || !next || prev.isUnscheduled || next.isUnscheduled) return '';
     const router = this.venueRouter;
     if (!router) {
-      if (!this.config.showRoomTransferNotes || prev.room === next.room ||
-          !/^\d+F /.test(prev.room) || !/^\d+F /.test(next.room)) return '';
+      if (!this.venueOverview?.canGuide(prev.room, next.room)) return '';
       const meeting = next.room.startsWith('11F ホール')
         ? '<small>ホール公演は開演時刻に1F集合</small>' : '';
       return `<div class="move-strip" role="group" aria-label="移動の目安">
         <span class="move-strip-icon">${ROUTE_SVG}</span>
         <span class="move-strip-text"><b>${Parser.escapeHtml(prev.room)}</b> → <b>${Parser.escapeHtml(next.room)}</b> ${meeting}</span>
+        <button type="button" class="move-strip-btn" data-route-from="${Parser.escapeHtml(prev.room)}"
+          data-route-to="${Parser.escapeHtml(next.room)}"
+          data-next-label="${Parser.escapeHtml(this._showLabel(next))}">ルートを見る</button>
       </div>`;
     }
     const route = router.route(prev.room, next.room);

@@ -12,6 +12,7 @@ import { FilterModal } from './ui/FilterModal.js';
 import { TicketView } from './ui/TicketView.js';
 import { MyScheduleDialog } from './ui/MyScheduleDialog.js';
 import { RouteView } from './ui/RouteView.js';
+import { VenueOverview } from './ui/VenueOverview.js';
 import { VenueRouter } from './core/VenueRouter.js';
 import { closeTopLayer, runDirectionalTransition } from './ui/motion.js';
 import { HeroMotion } from './ui/heroMotion.js';
@@ -47,6 +48,7 @@ const state = {
 
 const ticketView = new TicketView();
 const routeView = new RouteView();
+const venueOverview = new VenueOverview();
 const specPopup = new SpecPopup();
 
 let timetableView;
@@ -380,6 +382,7 @@ function applyLoadedData(rawData) {
 
   state.config = config;
   state.allShows = shows;
+  venueOverview.setContext(config, shows);
   loadVenueMap(config.venueMapUrl, shows);
   state.showsMap = new Map(shows.map(s => [s.id, s]));
   state.eventStorageId = EVENT_KEY !== 'default'
@@ -554,6 +557,7 @@ async function bootstrap() {
   scheduleDialog = new MyScheduleDialog({
     ticketView,
     routeView,
+    venueOverview,
     onAddShow: handleAddShow,
     onRemoveShow: handleRemoveShow
   });
