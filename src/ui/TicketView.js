@@ -690,6 +690,11 @@ export class TicketView {
     return /iP(hone|ad|od)/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   }
 
+  _isAndroidDevice() {
+    const ua = navigator.userAgent || '';
+    return /Android/i.test(ua);
+  }
+
   _revokeGuideUrl() {
     if (this._activeGuideUrl) {
       URL.revokeObjectURL(this._activeGuideUrl);
@@ -903,7 +908,7 @@ export class TicketView {
       const blob = await this.createPassBlob();
       const file = new File([blob], `my_hashigo_table_day${dayNum}.png`, { type: 'image/png' });
 
-      if (!this._isIOSDevice() && navigator.canShare && navigator.canShare({ files: [file] })) {
+      if (this._isAndroidDevice() && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
           title: this.getPassHeading(),
@@ -911,8 +916,17 @@ export class TicketView {
           url: shareUrl
         });
       } else {
+        let copiedImage = false;
+        if (!this._isIOSDevice() && navigator.clipboard && typeof ClipboardItem !== 'undefined') {
+          try {
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+            copiedImage = true;
+          } catch (_) {
+            copiedImage = false;
+          }
+        }
         const blobUrl = URL.createObjectURL(blob);
-        this._showImageGuide(blobUrl, dayNum, 'share', shareText, shareUrl);
+        this._showImageGuide(blobUrl, dayNum, 'share', shareText, shareUrl, copiedImage);
       }
     } catch (e) {
       if (e && e.name !== 'AbortError') {
@@ -933,16 +947,23 @@ export class TicketView {
     return intent.toString();
   }
 
-  _showImageGuide(blobUrl, activeDay, mode, shareText = '', shareUrl = '') {
+  _showImageGuide(blobUrl, activeDay, mode, shareText = '', shareUrl = '', copiedImage = false) {
     const guide = document.getElementById('ios-share-guide');
     if (!guide) return;
     this._revokeGuideUrl();
     this._activeGuideUrl = blobUrl;
 
     const intentUrl = this._buildXIntentUrl(shareText, shareUrl);
-    const caption = mode === 'save'
-      ? '下の画像を長押しして「写真に保存」を選んでください。'
-      : '下の画像を長押しで保存してから、X（Twitter）で画像付き投稿ができます。';
+    let caption;
+    if (mode === 'save') {
+      caption = '下の画像を長押しして「写真に保存」を選んでください。';
+    } else if (this._isIOSDevice()) {
+      caption = '下の画像を長押しで保存してから、X（Twitter）で画像付き投稿ができます。';
+    } else if (copiedImage) {
+      caption = '画像をクリップボードにコピーしました！下のボタンからXを開き、投稿画面で貼り付け（Ctrl+V）すると画像付きで投稿できます。';
+    } else {
+      caption = '下の画像を右クリックで保存（または「画像を保存」）してから、X（Twitter）で画像付き投稿ができます。';
+    }
 
     const shareButtonHtml = mode === 'share'
       ? `<a href="${Parser.escapeHtml(intentUrl)}" target="_blank" rel="noopener noreferrer" class="ios-share-x-link">X（Twitter）を開いて投稿する</a>`
