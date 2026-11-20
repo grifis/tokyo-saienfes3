@@ -61,7 +61,7 @@ function toKanjiNumber(num) {
 }
 
 /**
- * 「My ハシゴテーブル」パス表示・テキストコピー・画像保存・SNSシェアを担当するビュークラス
+ * 「My ハシゴテーブル」パス表示・テキストコピー・画像保存・Xシェアを担当するビュークラス
  */
 export class TicketView {
   constructor() {
@@ -882,14 +882,14 @@ export class TicketView {
   }
 
   /**
-   * SNSでシェアボタン押下時の処理
+   * Xでシェアボタン押下時の処理
    */
   async shareImage(activeDay = 1) {
     if (this.isGenerating) return;
     this.isGenerating = true;
     Analytics.track('share_sns', { selectedIds: Array.from(this.selectedIds) });
     const labelEl = document.getElementById('share-btn-label');
-    const prevText = labelEl ? labelEl.textContent : 'SNSでシェア';
+    const prevText = labelEl ? labelEl.textContent : 'Xでシェア';
     if (labelEl) labelEl.textContent = '準備中...';
 
     const title = this.config.title || 'タイムテーブル';

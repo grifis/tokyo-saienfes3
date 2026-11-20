@@ -715,7 +715,7 @@ function setupReadmeSheet(ss) {
     ],
     [
       "チケット箔の色 /\n文字の色 / 紙の色", "◎推奨",
-      "SNSシェア用「My ハシゴテーブル」チケット画像の箔押し色・本文インク色・背景紙色をカスタマイズできます。\n" +
+      "Xシェア用「My ハシゴテーブル」チケット画像の箔押し色・本文インク色・背景紙色をカスタマイズできます。\n" +
       "文字が読みやすくなるよう、紙の色は明るめの色がおすすめです。",
       48
     ],
@@ -1742,7 +1742,7 @@ function renderReportSheet(ss) {
     ["「My ハシゴテーブル」表示回数", meta.viewPassCount || 0, "ハシゴパス表示画面へ進んだ回数"],
     ["「My ハシゴテーブル」画像保存回数", meta.saveImageCount || 0, "画像として保存ボタンを押した回数"],
     ["「予定をコピー」実行回数", meta.copyPlanCount || 0, "共有URL付きテキストコピーの実行回数"],
-    ["「SNSでシェア」実行回数", meta.shareSnsCount || 0, "SNSシェアボタンの実行回数"]
+    ["「Xでシェア」実行回数", meta.shareSnsCount || 0, "Xでシェアボタンの実行回数"]
   ];
   reportSheet.getRange(5, 1, summaryRows.length, 3).setValues(summaryRows);
   reportSheet.getRange(5, 2, summaryRows.length, 1).setNumberFormat("#,##0");

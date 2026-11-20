@@ -160,7 +160,7 @@ const CLIPS = {
     await advance(500);
   }),
 
-  // My ハシゴテーブル（チケット）→ SNS でシェア
+  // My ハシゴテーブル（チケット）→ X でシェア
   ticket: () => run('ticket', async ({ tap, advance, scroll }) => {
     for (const id of ['s1', 'l2', 'e3', 'a3']) await tap(`.show-card[data-show-id="${id}"]`, 150);
     await advance(300);

@@ -355,7 +355,7 @@ async function run() {
     assert.ok(passChecks.passTitle.includes('My ハシゴテーブル'), 'パス見出しも My ハシゴテーブルであること');
     assert.strictEqual(passChecks.items, 3, 'パスカードに3公演描画されること');
     assert.strictEqual(passChecks.copyLeftOfDl, true, '予定をコピーが上段左、画像を保存が上段右であること');
-    assert.strictEqual(passChecks.shareBelowAndWide, true, 'SNSでシェアが下段全幅であること');
+    assert.strictEqual(passChecks.shareBelowAndWide, true, 'Xでシェアが下段全幅であること');
     assert.strictEqual(passChecks.borderUniform, true, 'パスカードアイテムに左縦色ラインが無いこと');
 
     // 予定をコピー実行＆クリップボード内容確認

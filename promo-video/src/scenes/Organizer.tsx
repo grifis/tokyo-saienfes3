@@ -192,7 +192,7 @@ const REPORT: [string, number][] = [
   ["ハシゴ計画作成人数", 612],
   ["「スキマ時間探索」実行回数", 388],
   ["スキマ候補からの公演追加回数", 147],
-  ["「SNSでシェア」実行回数", 203],
+  ["「Xでシェア」実行回数", 203],
 ];
 const Report: React.FC = () => {
   const f = useCurrentFrame();

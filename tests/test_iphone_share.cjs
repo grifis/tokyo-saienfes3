@@ -81,8 +81,8 @@ async function runTest() {
     await page.screenshot({ path: sc3 });
     console.log('スクリーンショット3保存完了:', sc3);
 
-    // 4. 「SNSでシェアする」ボタンをクリック
-    console.log('4. 「SNSでシェアする」を実行');
+    // 4. 「Xでシェア」ボタンをクリック
+    console.log('4. 「Xでシェア」を実行');
     const shareBtn = await page.$('#share-btn');
     if (!shareBtn) throw new Error('#share-btn が見つかりません');
     await shareBtn.click();
