@@ -1,4 +1,4 @@
-import { StaticJsonAdapter } from './adapters/StaticJsonAdapter.js';
+﻿import { StaticJsonAdapter } from './adapters/StaticJsonAdapter.js';
 import { GasAdapter } from './adapters/GasAdapter.js';
 import { MockAdapter } from './adapters/MockAdapter.js';
 import { Parser } from './core/Parser.js';
@@ -422,19 +422,12 @@ async function fetchLatestRawData() {
 
   try {
     return await new StaticJsonAdapter('./data.json').fetchData();
-  } catch (staticErr) {
-    console.warn('StaticJsonAdapter failed, trying fallback:', staticErr);
-  }
-
-  if (GAS_API_URL) {
-    try {
+  } catch (error) {
+    if (GAS_API_URL) {
       return await new GasAdapter(GAS_API_URL).fetchData();
-    } catch (gasErr) {
-      console.warn('GasAdapter failed, falling back to MockAdapter:', gasErr);
     }
+    throw error;
   }
-
-  return await new MockAdapter('./mock_data.json').fetchData();
 }
 
 function bindGlobalUiEvents() {
